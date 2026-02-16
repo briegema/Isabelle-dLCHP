@@ -6,4 +6,4 @@ Usage:
 
 3) Tell Isabelle the path to the AFP
 
-4) The session must be started with "Ordinary_Differential_Equations" as root theory
+4) The root file tells Isabelle to start the session with "HOL-Analysis" and "Ordinary_Differential_Equations" as basis
