@@ -2,9 +2,9 @@ theory "USubst"
 imports
   Complex_Main
   "Syntax"          
-  "Least_Static_Semantics"
   "Computable_Static_Semantics"
   "Denotational_Semantics"
+  "Denotational_Static_Semantics"
 begin 
 
 section \<open>Uniform Substitution\<close>
@@ -2784,25 +2784,6 @@ proof -
   thus ?thesis using assms by (meson Uvariation_def Uvariation_sym VCagree_sttconc_cong VCagree_trans uvari_of_run)
 qed
 
-(* TODO unused ?
-lemma transfer_uvari_over_run3:
-  assumes defp: "snd(usubstp \<sigma> \<L> U \<alpha>) \<noteq> undefp"
-  assumes run: "(\<nu>, \<tau>, Fin \<o>) \<in> chp_sem I (usubstpp \<sigma> \<L> U \<alpha>)"
-  assumes uvari: "Uvariation \<nu> \<omega> U"
-  shows "\<tau>' \<preceq> \<tau> \<Longrightarrow> Uvariation (\<o> @@ \<tau>') \<omega> (fst(usubstp \<sigma> \<L> U \<alpha>))"
-proof -
-  let ?Z = "fst(usubstp \<sigma> \<L> U \<alpha>)"
-  assume 0: "\<tau>' \<preceq> \<tau>"
-  have "VCagree \<o> \<nu> (-?Z)" using Uvariation_def Uvariation_sym_rel defp run uvari_of_run by metis
-  hence "VCagree (\<o> @@ \<tau>') (\<nu> @@ \<tau>') (-?Z)" using VCagree_sttconc_cong by presburger
-  moreover have "VCagree (\<nu> @@ \<tau>') \<nu> (-?Z)" 
-    using 0 by (meson Uvariation_def Uvariation_sym_rel defp run uvari_of_run_com)
-  moreover have "VCagree \<nu> \<omega> (-?Z)"
-    using Uvariation_def VCagree_antimon defp output_taboo_compl uvari by presburger
-  ultimately show "Uvariation (\<o> @@ \<tau>') \<omega> ?Z" by (meson Uvariation_def VCagree_trans)
-qed *)
-
-
 
 
 
@@ -2862,41 +2843,7 @@ definition chp_alt_sem_par :: "stat_sem \<Rightarrow> interp \<Rightarrow> chp \
     (\<nu>, \<tau> \<down> (CN (\<pi>\<^sub>I I) \<alpha>), \<omega>\<^sub>\<alpha>) \<in> chp_sem I \<alpha> \<and> (\<nu>, \<tau> \<down> (CN (\<pi>\<^sub>I I) \<beta>), \<omega>\<^sub>\<beta>) \<in> chp_sem I \<beta> \<and>
     (Vagreebot \<omega>\<^sub>\<alpha> \<omega>\<^sub>\<beta> \<V>\<^sub>\<mu>) \<and> (\<omega> = lmergebot \<omega>\<^sub>\<alpha> \<omega>\<^sub>\<beta> (BVP\<^sub>\<L> \<L> \<alpha>)) \<and> \<tau> \<down> (CN (\<pi>\<^sub>I I) \<alpha> \<union> CN (\<pi>\<^sub>I I) \<beta>) = \<tau>}"
 
-(* TODO remove doubled 
-
-lemma lmerge_BVP_cong_soundBV:
-  assumes soundBV: "\<And>\<alpha>. BVP\<^sub>\<L> \<L> \<alpha> \<supseteq> BVP (\<pi>\<^sub>I I) \<alpha>"
-      and disjoint: "BVP\<^sub>\<L> \<L> \<alpha> \<inter> BVP\<^sub>\<L> \<L> \<beta> \<subseteq> \<V>\<^sub>\<mu> \<union> (\<iota>\<^sub>T \<V>\<^sub>T)"
-      and alpha: "(\<nu>, \<tau>\<^sub>\<alpha>, Fin \<omega>\<^sub>\<alpha>) \<in> chp_sem I \<alpha>"
-      and beta:  "(\<nu>, \<tau>\<^sub>\<beta>, Fin \<omega>\<^sub>\<beta>) \<in> chp_sem I \<beta>"
-      and gtime: "Vagree \<omega>\<^sub>\<alpha> \<omega>\<^sub>\<beta> \<V>\<^sub>\<mu>"
-    shows "lmerge \<omega>\<^sub>\<alpha> \<omega>\<^sub>\<beta> (BVP (\<pi>\<^sub>I I) \<alpha>) = lmerge \<omega>\<^sub>\<alpha> \<omega>\<^sub>\<beta> (BVP\<^sub>\<L> \<L> \<alpha>)"
-proof (rule state_eq_by_sortI, goal_cases stR stT)
-  case stR
-  thus ?case
-  proof
-    fix x
-    show "stR (lmerge \<omega>\<^sub>\<alpha> \<omega>\<^sub>\<beta> (BVP (\<pi>\<^sub>I I) \<alpha>)) x = stR (lmerge \<omega>\<^sub>\<alpha> \<omega>\<^sub>\<beta> (BVP\<^sub>\<L> \<L> \<alpha>)) x"   
-    proof (cases "Rv x \<in> BVP (\<pi>\<^sub>I I) \<alpha> \<or> Rv x \<notin> BVP\<^sub>\<L> \<L> \<alpha>")
-      case True
-      thus ?thesis using lmerge_def soundBV by fastforce
-    next
-      case False
-      hence "Rv x \<notin> BVP (\<pi>\<^sub>I I) \<beta> \<or> Rv x \<in> \<V>\<^sub>\<mu>" using soundBV assms by force
-      moreover have "stR \<nu> x = stR \<omega>\<^sub>\<alpha> x" using False BVP_elem alpha by force
-      ultimately show ?thesis
-        apply (cases "Rv x \<in> \<V>\<^sub>\<mu>")
-        using Vagree_def beta BVP_elem False gtime lmerge_def apply auto[1]
-        by (metis assms(1,2,3,4,5) lmerge_BVP_cong_soundBV)
-    qed
-  qed
-next
-  case stT  
-  have "Vagree \<omega>\<^sub>\<alpha> \<omega>\<^sub>\<beta> (\<iota>\<^sub>T \<V>\<^sub>T)" 
-    by (meson Vagree_sym Vagree_only_trans alpha beta bound_effect_on_state(2))
-  hence "stT \<omega>\<^sub>\<alpha> = stT \<omega>\<^sub>\<beta>" using Vagree_alltvars by blast
-  thus ?case unfolding lmerge_def by auto
-qed      *) 
+ 
 
 lemma chp_sem_eq_alt_sem:
   assumes soundBV: "\<And>\<alpha>. BVP\<^sub>\<L> \<L> \<alpha> \<supseteq> BVP (\<pi>\<^sub>I I) \<alpha>"

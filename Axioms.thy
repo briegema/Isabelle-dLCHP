@@ -2,7 +2,7 @@ theory "Axioms"
 imports
   "Syntax"
   "Denotational_Semantics"
-  "Least_Static_Semantics"
+  "Denotational_Static_Semantics"
   "Ids"
 begin
 

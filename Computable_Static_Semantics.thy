@@ -2,7 +2,7 @@ theory "Computable_Static_Semantics"
 imports
   "Syntax"
   "Denotational_Semantics"
-  "Least_Static_Semantics"
+  "Denotational_Static_Semantics"
 begin
 
 section \<open>Computable Static Semantics\<close>
